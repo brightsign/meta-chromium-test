@@ -1,0 +1,7 @@
+header:
+  version: 11
+
+local_conf_header:
+  chromium-ozone-wayland: |
+    PREFERRED_PROVIDER_chromium = "chromium-ozone-wayland"
+    PACKAGECONFIG:append:pn-chromium-ozone-wayland = " proprietary-codecs component-build"

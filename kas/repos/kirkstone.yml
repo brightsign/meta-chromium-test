@@ -1,0 +1,15 @@
+header:
+  version: 11
+  includes:
+    - kas/repos/common-repos.yml
+    - kas/repos/lts-mixins.yml
+
+repos:
+  meta-oe:
+    refspec: "45bddd258a3d1ded925faf8389e01bb948dc7f5b"
+  poky:
+    refspec: "ab9a994a8cd8e06b519a693db444030999d273b7"
+  meta-clang:
+    refspec: "8a1d0a1993040ab9d2fb7259b71e4c9582f5cd17"
+  meta-lts-mixins:
+    refspec: "83ce817e19487afa9fd375da687493587f78fbc6"

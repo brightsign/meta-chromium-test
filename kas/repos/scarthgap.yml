@@ -1,0 +1,20 @@
+header:
+  version: 11
+  includes:
+    - kas/repos/common-repos.yml
+    - kas/repos/lts-mixins.yml
+
+repos:
+  meta-oe:
+    refspec: "491671faee11ea131feab5a3a451d1a01deb2ab1"
+  poky:
+    refspec: "ac257900c33754957b2696529682029d997a8f28"
+  meta-clang:
+    refspec: "eaa08939eaec9f620b14742ff3ac568553683034"
+  meta-lts-mixins:
+    refspec: "a8046d5ec53b1856169ac795aa87cb0d5db84c04"
+
+local_conf_header:
+  scarthgap: |
+    BBMASK += "poky/meta/recipes-devtools/rust"
+    BBMASK += "meta-lts-mixins/recipes-gnome/librsvg"

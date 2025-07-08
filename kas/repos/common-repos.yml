@@ -1,0 +1,27 @@
+header:
+  version: 11
+
+repos:
+  meta-browser:
+    layers:
+      ../meta-browser/meta-chromium:
+  meta-chromium-test:
+    layers:
+      .:
+  meta-oe:
+    url: https://github.com/openembedded/meta-openembedded
+    layers:
+      meta-oe:
+      meta-networking:
+      meta-multimedia:
+      meta-python:
+  poky:
+    url: https://github.com/yoctoproject/poky.git
+    layers:
+      meta:
+      meta-poky:
+      meta-yocto-bsp:
+  meta-clang:
+    url: https://github.com/kraj/meta-clang
+    layers:
+      .:

@@ -1,0 +1,20 @@
+header:
+  version: 11
+
+target: chromium-test-image
+
+local_conf_header:
+  meta-chromium-common: |
+    LICENSE_FLAGS_ACCEPTED += "commercial"
+    INHERIT += "own-mirrors rm_work"
+    BB_GENERATE_MIRROR_TARBALLS = "1"
+    PACKAGECONFIG:append:pn-qemu = " sdl "
+    PACKAGECONFIG:append:pn-qemu:class-nativesdk = " sdl "
+    PACKAGECONFIG:append:pn-qemu-system-native = " sdl "
+    DL_DIR = "/yocto/yocto_dl"
+    SSTATE_DIR = "/yocto/yocto_sstate_chromium"
+    SOURCE_MIRROR_URL = "http://192.168.1.130:8888/common"
+    EXTRA_IMAGE_FEATURES:append = " debug-tweaks "
+    IMAGE_FSTYPES:remove = "wic.qcow2"
+    INHERIT:remove = "create-spdx"
+    # Chromium specific settings

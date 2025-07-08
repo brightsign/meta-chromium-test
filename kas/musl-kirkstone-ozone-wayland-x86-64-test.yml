@@ -1,0 +1,13 @@
+header:
+  version: 11
+  includes:
+    - kas/chromium/ozone-wayland.yml
+    - kas/repos/kirkstone.yml
+    - kas/common.yml
+    - kas/musl.yml
+
+machine: qemux86-64
+
+local_conf_header:
+  image_name: |
+    IMAGE_NAME = "musl-kirkstone-ozone-wayland-x86_64"
