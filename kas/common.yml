@@ -13,7 +13,7 @@ local_conf_header:
     PACKAGECONFIG:append:pn-qemu-system-native = " sdl "
     DL_DIR = "/yocto/yocto_dl"
     SSTATE_DIR = "/yocto/yocto_sstate_chromium"
-    SOURCE_MIRROR_URL = "http://192.168.1.130:8888/common"
+    SOURCE_MIRROR_URL = ""
     EXTRA_IMAGE_FEATURES:append = " debug-tweaks "
     IMAGE_FSTYPES:remove = "wic.qcow2"
     INHERIT:remove = "create-spdx"
