@@ -4,4 +4,4 @@ header:
 local_conf_header:
   chromium-x11: |
     PREFERRED_PROVIDER_chromium = "chromium-x11"
-    PACKAGECONFIG:append:pn-chromium-x11 = " proprietary-codecs component-build"
+    PACKAGECONFIG:append:pn-chromium-x11 = " proprietary-codecs"
