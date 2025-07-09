@@ -19,7 +19,6 @@ A comprehensive Yocto/OpenEmbedded layer for automated testing of Chromium brows
 - [Docker Infrastructure](#docker-infrastructure)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
-- [Docker Infrastructure](#docker-infrastructure)
 
 ## Overview
 
@@ -499,6 +498,115 @@ The Docker environment includes optimized settings for:
 - Source mirror URL for faster downloads
 - Build optimizations for containerized environments
 
+### Setting Up the Docker Volume
+
+Before running any builds, you need to create the Docker volume with the required directory structure and proper permissions. This ensures that the `yoctouser` in the container can write to all necessary directories.
+
+#### Step 1: Create the Docker Volume
+
+```bash
+# Create the named Docker volume
+docker volume create yocto
+```
+
+#### Step 2: Initialize Directory Structure and Permissions
+
+```bash
+# Run a temporary container as root to set up the directory structure
+docker run --rm -v yocto:/yocto --user root skandigraun/yocto:latest bash -c "
+  # Create all required directories
+  mkdir -p /yocto/yocto_dl
+  mkdir -p /yocto/yocto_sstate_chromium
+  mkdir -p /yocto/test-images
+  mkdir -p /yocto/kirkstone
+  mkdir -p /yocto/scarthgap
+  mkdir -p /yocto/walnascar
+  mkdir -p /yocto/master
+  
+  # Set proper ownership for yoctouser (UID 1000, GID 1000 typically)
+  chown -R 1000:1000 /yocto
+  
+  # Set proper permissions
+  chmod -R 755 /yocto
+  
+  echo 'Docker volume setup completed successfully!'
+"
+```
+
+#### Step 3: Verify the Setup
+
+```bash
+# Verify that yoctouser can write to the volume
+docker run --rm -v yocto:/yocto skandigraun/yocto:latest bash -c "
+  echo 'Testing write permissions...'
+  touch /yocto/test-file
+  ls -la /yocto/test-file
+  rm /yocto/test-file
+  echo 'Volume setup verified successfully!'
+"
+```
+
+#### Alternative: One-Command Setup
+
+For convenience, you can set up everything in a single command:
+
+```bash
+# Create volume and set up directory structure in one go
+docker volume create yocto && \
+docker run --rm -v yocto:/yocto --user root skandigraun/yocto:latest bash -c "
+  mkdir -p /yocto/{yocto_dl,yocto_sstate_chromium,test-images,kirkstone,scarthgap,walnascar,master}
+  chown -R 1000:1000 /yocto
+  chmod -R 755 /yocto
+  echo 'Yocto Docker volume ready for use!'
+" && \
+echo "Volume setup complete. You can now run builds."
+```
+
+#### Troubleshooting Volume Setup
+
+If you encounter permission issues:
+
+1. **Check the yoctouser UID/GID in your container**:
+   ```bash
+   docker run --rm skandigraun/yocto:latest id yoctouser
+   ```
+
+2. **Adjust ownership if needed** (replace 1000:1000 with actual UID:GID):
+   ```bash
+   docker run --rm -v yocto:/yocto --user root skandigraun/yocto:latest bash -c "
+     chown -R 1000:1000 /yocto
+   "
+   ```
+
+3. **Remove and recreate volume if corrupted**:
+   ```bash
+   docker volume rm yocto
+   # Then repeat the setup steps above
+   ```
+
+#### Volume Management
+
+- **View volume information**:
+  ```bash
+  docker volume inspect yocto
+  ```
+
+- **Clean up old builds** (preserves download and sstate cache):
+  ```bash
+  docker run --rm -v yocto:/yocto skandigraun/yocto:latest bash -c "
+    rm -rf /yocto/kirkstone/build /yocto/scarthgap/build /yocto/walnascar/build /yocto/master/build
+    rm -rf /yocto/test-images/*
+    echo 'Build artifacts cleaned, caches preserved'
+  "
+  ```
+
+- **Complete volume cleanup** (removes everything):
+  ```bash
+  docker volume rm yocto
+  ```
+
+Once the volume is set up, you can proceed with the Docker usage examples in the Quick Start section.
+
 ## Troubleshooting
 
 ### Common Issues
@@ -577,43 +685,3 @@ This layer is distributed under the MIT License. See the `COPYING.MIT` file for 
 ---
 
 For questions, issues, or contributions, please use the project's issue tracker or contact the maintainers directly.
-
-## Docker Infrastructure
-
-### Container Setup
-
-The testing infrastructure uses the `skandigraun/yocto:latest` Docker image which provides:
-
-- Pre-configured Yocto build environment
-- All required tools and dependencies
-- Optimized build cache and download directories
-- Consistent environment across different host systems
-
-### Directory Structure
-
-The Docker container expects the following host directory structure:
-
-```
-/yocto/                           # Host directory mounted to container
-├── yocto_dl/                     # Download cache (persistent)
-├── yocto_sstate_chromium/        # Shared state cache (persistent)
-├── test-images/                  # Built test images
-├── kirkstone/                    # Kirkstone builds
-├── scarthgap/                    # Scarthgap builds
-├── walnascar/                    # Walnascar builds
-└── master/                       # Master builds
-```
-
-### Volume Mounts
-
-- `/yocto:/yocto` - Persistent build artifacts and caches
-- `/path/to/meta-browser:/src/meta-browser:ro` - Meta-browser layer (read-only)
-- `/path/to/meta-chromium-test:/src/meta-chromium-test:ro` - This test layer (read-only)
-
-### Environment Variables
-
-The Docker environment includes optimized settings for:
-- Download directory: `/yocto/yocto_dl`
-- Shared state directory: `/yocto/yocto_sstate_chromium`
-- Source mirror URL for faster downloads
-- Build optimizations for containerized environments
