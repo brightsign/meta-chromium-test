@@ -5,11 +5,11 @@ header:
 
 repos:
   meta-oe:
-    refspec: "2169c9afcc0945045bea49f58011080942d4ddb4"
+    commit: "2169c9afcc0945045bea49f58011080942d4ddb4"
   poky:
-    refspec: "fd9b605507a20d850a9991316cd190c1d20dc4a6"
+    commit: "fd9b605507a20d850a9991316cd190c1d20dc4a6"
   meta-clang:
-    refspec: "b3e5449f0156884d18c17efff99654cde8251411"
+    commit: "b3e5449f0156884d18c17efff99654cde8251411"
 
 local_conf_header:
   walnascar: |
