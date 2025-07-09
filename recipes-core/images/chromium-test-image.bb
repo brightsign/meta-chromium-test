@@ -1,9 +1,10 @@
 require recipes-sato/images/core-image-sato.bb
 
-IMAGE_INSTALL += "chromium-ozone-wayland chromium-x11 chromium-tests"
+# Install the preferred Chromium provider (set via KAS configuration)
+IMAGE_INSTALL += "${PREFERRED_PROVIDER_chromium} chromium-tests"
 
 SUMMARY = "Test image for Chromium browser builds"
-DESCRIPTION = "This image contains both Chromium variants (Ozone Wayland and X11) for testing purposes."
+DESCRIPTION = "This image contains the configured Chromium variant for testing purposes."
 
 # Add common packages for testing
 IMAGE_INSTALL += " \
