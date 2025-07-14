@@ -26,10 +26,10 @@ else
 fi
 
 # check if it needs to be built, if the flag has been set
-if [ -d /yocto/test-images/$kas_file_name ]; then
-  echo Image has been already built, exiting.
-  exit 0
-fi
+#if [ -d /yocto/test-images/$kas_file_name ]; then
+#  echo Image has been already built, exiting.
+#  exit 0
+#fi
 
 cd /yocto/$yocto_version
 
