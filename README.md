@@ -96,15 +96,18 @@ meta-chromium-test/
 
 ### Infrastructure Requirements
 
-The testing infrastructure expects specific directory structures to exist:
+The testing infrastructure expects the following base directory structure:
 
 - `/yocto/` - Base directory for all builds and test images
-- `/yocto/{yocto_version}/` - Version-specific build directories
-- `/yocto/test-images/` - Directory for storing built test images
+- `/yocto/{yocto_version}/` - Version-specific build directories (created by GitHub Actions/CI)
+
+The following subdirectories are created automatically by the `build.sh` script:
 - `/yocto/yocto_dl/` - Download directory for source packages
 - `/yocto/yocto_sstate_chromium/` - Shared state cache directory
+- `/yocto/yocto_ccache/` - ccache directory for faster rebuilds
+- `/yocto/test-images/` - Directory for storing built test images
 
-**Note**: The recommended approach is to use the provided Docker infrastructure which handles these requirements automatically.
+**Note**: The recommended approach is to use the provided Docker infrastructure which handles these requirements automatically. Only the root `/yocto` directory needs manual setup.
 
 ### Required Layers
 
@@ -402,11 +405,11 @@ chromium-smoke-test
 
 ### Automated Testing Pipeline
 
-For CI/CD integration using Docker:
+For CI/CD integration using Docker with ccache:
 
 ```bash
 #!/bin/bash
-# Example CI script for Docker-based testing
+# Example CI script for Docker-based testing with ccache
 
 DOCKER_IMAGE="skandigraun/yocto:latest"
 META_BROWSER_PATH="/path/to/meta-browser"
@@ -419,18 +422,26 @@ CONFIGS=(
     "master riscv ozone-wayland glibc"
 )
 
+# Show initial ccache stats
+echo "Initial ccache statistics:"
+docker run --rm -v yocto:/yocto "$DOCKER_IMAGE" bash -c "
+    export CCACHE_DIR=/yocto/yocto_ccache
+    ccache -s 2>/dev/null || echo 'ccache not yet initialized'
+"
+
 for config in "${CONFIGS[@]}"; do
     read -r yocto_version arch chromium_version libc <<< "$config"
 
     echo "Testing: $config"
 
     docker run --rm -it \
-        -v /yocto:/yocto \
+        -v yocto:/yocto \
         -v "$META_BROWSER_PATH":/src/meta-browser:ro \
         -v "$META_CHROMIUM_TEST_PATH":/src/meta-chromium-test:ro \
         "$DOCKER_IMAGE" \
         bash -c "
             set -e
+            # Only create Yocto version directory - build.sh handles the rest
             mkdir -p /yocto/$yocto_version && cd /yocto/$yocto_version
             rm -rf meta-browser meta-chromium-test
             cp -r /src/meta-browser ./meta-browser
@@ -440,7 +451,14 @@ for config in "${CONFIGS[@]}"; do
         " || exit 1
 done
 
-echo "All tests completed successfully!"
+# Show final ccache stats
+echo "Final ccache statistics:"
+docker run --rm -v yocto:/yocto "$DOCKER_IMAGE" bash -c "
+    export CCACHE_DIR=/yocto/yocto_ccache
+    ccache -s
+"
+
+echo "All tests completed successfully with ccache acceleration!"
 ```
 
 ## Recipes
@@ -467,22 +485,26 @@ The testing infrastructure uses the `skandigraun/yocto:latest` Docker image whic
 - Pre-configured Yocto build environment
 - All required tools and dependencies
 - Optimized build cache and download directories
+- ccache support for faster rebuilds
 - Consistent environment across different host systems
 
 ### Directory Structure
 
-The Docker container expects the following host directory structure:
+The Docker container uses the following directory structure (created automatically by `build.sh`):
 
 ```
 /yocto/                           # Host directory mounted to container
-├── yocto_dl/                     # Download cache (persistent)
-├── yocto_sstate_chromium/        # Shared state cache (persistent)
-├── test-images/                  # Built test images
-├── kirkstone/                    # Kirkstone builds
-├── scarthgap/                    # Scarthgap builds
-├── walnascar/                    # Walnascar builds
-└── master/                       # Master builds
+├── yocto_dl/                     # Download cache (created by build.sh)
+├── yocto_sstate_chromium/        # Shared state cache (created by build.sh)
+├── yocto_ccache/                 # ccache directory (created by build.sh)
+├── test-images/                  # Built test images (created by build.sh)
+├── kirkstone/                    # Kirkstone builds (created as needed)
+├── scarthgap/                    # Scarthgap builds (created as needed)
+├── walnascar/                    # Walnascar builds (created as needed)
+└── master/                       # Master builds (created as needed)
 ```
+
+**Note**: Only the root `/yocto` directory needs to be set up manually. All subdirectories are created automatically by the build script with proper permissions.
 
 ### Volume Mounts
 
@@ -495,8 +517,24 @@ The Docker container expects the following host directory structure:
 The Docker environment includes optimized settings for:
 - Download directory: `/yocto/yocto_dl`
 - Shared state directory: `/yocto/yocto_sstate_chromium`
+- ccache directory: `/yocto/yocto_ccache` (up to 50GB cache)
 - Source mirror URL for faster downloads
 - Build optimizations for containerized environments
+
+### ccache Configuration
+
+The layer is configured with ccache to significantly speed up rebuilds:
+
+- **Cache Location**: `/yocto/yocto_ccache`
+- **Maximum Size**: 50GB (configurable in `kas/common.yml`)
+- **Compression**: Enabled with level 6 for space efficiency
+- **Shared Across**: All architectures and Yocto versions
+
+**ccache Benefits**:
+- **First Build**: Same speed as without ccache
+- **Subsequent Builds**: 2-10x faster depending on changes
+- **Cross-Architecture**: Shared cache across ARM, AArch64, x86-64, RISC-V
+- **Cross-Version**: Shared cache across different Yocto versions
 
 ### Setting Up the Docker Volume
 
@@ -509,19 +547,13 @@ Before running any builds, you need to create the Docker volume with the require
 docker volume create yocto
 ```
 
-#### Step 2: Initialize Directory Structure and Permissions
+#### Step 2: Initialize Basic Structure and Permissions
 
 ```bash
-# Run a temporary container as root to set up the directory structure
+# Run a temporary container as root to set up basic structure and permissions
 docker run --rm -v yocto:/yocto --user root skandigraun/yocto:latest bash -c "
-  # Create all required directories
-  mkdir -p /yocto/yocto_dl
-  mkdir -p /yocto/yocto_sstate_chromium
-  mkdir -p /yocto/test-images
-  mkdir -p /yocto/kirkstone
-  mkdir -p /yocto/scarthgap
-  mkdir -p /yocto/walnascar
-  mkdir -p /yocto/master
+  # Create the root /yocto directory with proper ownership
+  mkdir -p /yocto
   
   # Set proper ownership for yoctouser (UID 1000, GID 1000 typically)
   chown -R 1000:1000 /yocto
@@ -530,8 +562,11 @@ docker run --rm -v yocto:/yocto --user root skandigraun/yocto:latest bash -c "
   chmod -R 755 /yocto
   
   echo 'Docker volume setup completed successfully!'
+  echo 'Note: Build-specific directories will be created automatically by build.sh'
 "
 ```
+
+**Note**: The build script (`build.sh`) automatically creates all required subdirectories (`yocto_dl`, `yocto_sstate_chromium`, `yocto_ccache`, `test-images`) with proper permissions when you run your first build. This eliminates the need to manually create these directories during setup.
 
 #### Step 3: Verify the Setup
 
@@ -543,6 +578,7 @@ docker run --rm -v yocto:/yocto skandigraun/yocto:latest bash -c "
   ls -la /yocto/test-file
   rm /yocto/test-file
   echo 'Volume setup verified successfully!'
+  echo 'Ready for builds - subdirectories will be created automatically'
 "
 ```
 
@@ -551,15 +587,39 @@ docker run --rm -v yocto:/yocto skandigraun/yocto:latest bash -c "
 For convenience, you can set up everything in a single command:
 
 ```bash
-# Create volume and set up directory structure in one go
+# Create volume and set up basic structure in one go
 docker volume create yocto && \
 docker run --rm -v yocto:/yocto --user root skandigraun/yocto:latest bash -c "
-  mkdir -p /yocto/{yocto_dl,yocto_sstate_chromium,test-images,kirkstone,scarthgap,walnascar,master}
+  mkdir -p /yocto
   chown -R 1000:1000 /yocto
   chmod -R 755 /yocto
   echo 'Yocto Docker volume ready for use!'
+  echo 'Build-specific directories will be created automatically by build.sh'
 " && \
-echo "Volume setup complete. You can now run builds."
+echo "Volume setup complete. You can now run builds with automatic ccache setup."
+
+#### ccache Management
+
+Monitor and manage ccache performance:
+
+```bash
+# Check ccache statistics
+docker run --rm -v yocto:/yocto skandigraun/yocto:latest bash -c "
+  export CCACHE_DIR=/yocto/yocto_ccache
+  ccache -s
+"
+
+# Clear ccache if needed
+docker run --rm -v yocto:/yocto skandigraun/yocto:latest bash -c "
+  export CCACHE_DIR=/yocto/yocto_ccache
+  ccache -C
+"
+
+# Set different cache size limit (e.g., 100GB)
+docker run --rm -v yocto:/yocto skandigraun/yocto:latest bash -c "
+  export CCACHE_DIR=/yocto/yocto_ccache
+  ccache -M 100G
+"
 ```
 
 #### Troubleshooting Volume Setup
@@ -591,21 +651,41 @@ If you encounter permission issues:
   docker volume inspect yocto
   ```
 
-- **Clean up old builds** (preserves download and sstate cache):
+- **Clean up old builds** (preserves download, sstate, and ccache):
   ```bash
   docker run --rm -v yocto:/yocto skandigraun/yocto:latest bash -c "
-    rm -rf /yocto/kirkstone/build /yocto/scarthgap/build /yocto/walnascar/build /yocto/master/build
-    rm -rf /yocto/test-images/*
+    rm -rf /yocto/*/build 2>/dev/null || true
+    rm -rf /yocto/test-images/* 2>/dev/null || true
     echo 'Build artifacts cleaned, caches preserved'
+    echo 'Note: Shared directories will be recreated automatically on next build'
   "
   ```
 
-- **Complete volume cleanup** (removes everything):
+- **Complete volume cleanup** (removes everything including ccache):
   ```bash
   docker volume rm yocto
   ```
 
-Once the volume is set up, you can proceed with the Docker usage examples in the Quick Start section.
+#### Performance Optimization
+
+For optimal ccache performance:
+
+1. **Monitor cache hit rate**:
+   ```bash
+   docker run --rm -v yocto:/yocto skandigraun/yocto:latest bash -c "
+     export CCACHE_DIR=/yocto/yocto_ccache
+     ccache -s | grep 'cache hit rate'
+   "
+   ```
+
+2. **Adjust cache size** based on available disk space:
+   - **Minimum recommended**: 20GB for basic usage
+   - **Optimal**: 50GB for full matrix testing
+   - **Maximum useful**: 100GB+ for extensive development
+
+3. **Keep cache across container restarts** by using the persistent volume mount
+
+Once the volume is set up, you can proceed with the Docker usage examples in the Quick Start section. Your builds will automatically benefit from ccache acceleration on subsequent runs.
 
 ## Troubleshooting
 

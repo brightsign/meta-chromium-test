@@ -33,6 +33,14 @@ fi
 
 cd /yocto/$yocto_version
 
+# Ensure all required Yocto subdirectories exist with proper permissions
+# This creates the shared directories that are used across all builds
+mkdir -p /yocto/yocto_dl
+mkdir -p /yocto/yocto_sstate_chromium
+mkdir -p /yocto/yocto_ccache
+mkdir -p /yocto/test-images
+chmod 755 /yocto/yocto_dl /yocto/yocto_sstate_chromium /yocto/yocto_ccache /yocto/test-images
+
 if [ "$arch" = "riscv" ]; then
   OPENSBI="opensbi"
 else
@@ -53,4 +61,12 @@ kas shell ./meta-chromium-test/kas/$kas_file_name-test.yml -c "bitbake -c clean 
 kas build ./meta-chromium-test/kas/$kas_file_name-test.yml || exit 1
 
 # Copy the built image to test images directory
-cp -r ./build/tmp/deploy/images/$qemu_machine /yocto/test-images/$kas_file_name
+if [ -d ./build/tmp/deploy/images/$qemu_machine ]; then
+  echo "Copying built image to /yocto/test-images/$kas_file_name"
+  cp -r ./build/tmp/deploy/images/$qemu_machine /yocto/test-images/$kas_file_name
+  echo "Successfully created test image: $kas_file_name"
+  ls -la /yocto/test-images/$kas_file_name
+else
+  echo "ERROR: Built image directory not found: ./build/tmp/deploy/images/$qemu_machine"
+  exit 1
+fi
