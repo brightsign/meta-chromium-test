@@ -621,7 +621,6 @@ docker run --rm -v yocto:/yocto skandigraun/yocto:latest bash -c "
   ccache -M 100G
 "
 ```
-```
 
 #### Troubleshooting Volume Setup
 
