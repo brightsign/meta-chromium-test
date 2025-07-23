@@ -1,21 +1,11 @@
-require recipes-sato/images/core-image-sato.bb
+# Use core-image-minimal as base and build up from there
+inherit core-image
 
 # Install the preferred Chromium provider (set via KAS configuration)
 IMAGE_INSTALL += "${PREFERRED_PROVIDER_chromium} chromium-tests"
 
 SUMMARY = "Test image for Chromium browser builds"
 DESCRIPTION = "This image contains the configured Chromium variant for testing purposes."
-
-# Add common packages for testing
-IMAGE_INSTALL += " \
-    packagegroup-core-x11-sato \
-    packagegroup-core-x11-xserver \
-    xorg-minimal-fonts \
-    liberation-fonts \
-    ttf-dejavu-sans \
-    ttf-dejavu-sans-mono \
-    ttf-dejavu-serif \
-"
 
 # Development and debugging tools
 IMAGE_INSTALL += " \
