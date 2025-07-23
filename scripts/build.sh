@@ -63,6 +63,7 @@ kas build ./meta-chromium-test/kas/$kas_file_name-test.yml || exit 1
 # Copy the built image to test images directory
 if [ -d ./build/tmp/deploy/images/$qemu_machine ]; then
   echo "Copying built image to /yocto/test-images/$kas_file_name"
+  rm -rf /yocto/test-images/$kas_file_name
   cp -r ./build/tmp/deploy/images/$qemu_machine /yocto/test-images/$kas_file_name
   echo "Successfully created test image: $kas_file_name"
   ls -la /yocto/test-images/$kas_file_name
