@@ -5,11 +5,11 @@ header:
 
 repos:
   meta-oe:
-    commit: "2169c9afcc0945045bea49f58011080942d4ddb4"
+    commit: "1d6095b73fa21062fde2b347cd61b6c5104390d9"
   poky:
-    commit: "fd9b605507a20d850a9991316cd190c1d20dc4a6"
+    commit: "9bc47d6a4d23bff5999b69fa2b99e1b32eaa62fb"
   meta-clang:
-    commit: "b3e5449f0156884d18c17efff99654cde8251411"
+    commit: "02e254ba1fb4937530d94a154b4c713c904c2d06"
 
 local_conf_header:
   master: |
