@@ -1,0 +1,12 @@
+header:
+  version: 11
+  includes:
+    - kas/chromium/ozone-wayland.yml
+    - kas/repos/walnascar.yml
+    - kas/common.yml
+
+machine: qemuriscv64
+
+local_conf_header:
+  image_name: |
+    IMAGE_NAME = "glibc-walnascar-ozone-wayland-riscv-chromium"

@@ -1,0 +1,13 @@
+header:
+  version: 11
+  includes:
+    - kas/electron/ozone-x11.yml
+    - kas/repos/kirkstone.yml
+    - kas/common.yml
+    - kas/musl.yml
+
+machine: qemuarm
+
+local_conf_header:
+  image_name: |
+    IMAGE_NAME = "musl-kirkstone-ozone-x11-arm-electron"

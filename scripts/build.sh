@@ -1,8 +1,9 @@
 #!/bin/bash
 
-if [ $# -le 3 ]; then
-  echo Usage: $0 yocto_version arch chromium_version [libc_flavour]
-  echo E.g. $0 kirkstone aarch64 ozone-wayland
+if [ $# -le 4 ]; then
+  echo Usage: $0 yocto_version arch browser_version browser [libc_flavour]
+  echo E.g. $0 master aarch64 ozone-wayland electron
+  echo E.g. $0 kirkstone aarch64 ozone-wayland chromium
   exit 1
 fi
 
@@ -14,10 +15,11 @@ arch_qemu_dict["x86-64"]="qemux86-64"
 
 yocto_version=$1
 arch=$2
-chromium_version=$3
-libc_flavour=$4
+browser_version=$3
+browser=$4
+libc_flavour=$5
 
-kas_file_name=$yocto_version-$chromium_version-$arch
+kas_file_name=$yocto_version-$browser_version-$arch-$browser
 
 if [ -n "$libc_flavour" ]; then
   kas_file_name=$libc_flavour-$kas_file_name
@@ -53,8 +55,14 @@ rm -rf ./build/tmp/deploy/images/$qemu_machine
 
 kas checkout --update ./meta-chromium-test/kas/$kas_file_name-test.yml || exit 1
 
-# Clean previous builds
-kas shell ./meta-chromium-test/kas/$kas_file_name-test.yml -c "bitbake -c clean chromium-ozone-wayland chromium-x11 \
+# Clean previous builds - adjust packages based on browser
+if [ "$browser" = "electron" ]; then
+  BROWSER_PACKAGES="electron-ozone-wayland electron-ozone-x11"
+else
+  BROWSER_PACKAGES="chromium-ozone-wayland chromium-x11"
+fi
+
+kas shell ./meta-chromium-test/kas/$kas_file_name-test.yml -c "bitbake -c clean $BROWSER_PACKAGES \
          virtual/kernel $OPENSBI" || exit 1
 
 # Build the image

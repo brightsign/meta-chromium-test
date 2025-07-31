@@ -1,0 +1,13 @@
+header:
+  version: 11
+  includes:
+    - kas/chromium/ozone-wayland.yml
+    - kas/repos/walnascar.yml
+    - kas/common.yml
+    - kas/musl.yml
+
+machine: qemuarm64
+
+local_conf_header:
+  image_name: |
+    IMAGE_NAME = "musl-walnascar-ozone-wayland-aarch64-chromium"
