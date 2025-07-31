@@ -1,0 +1,12 @@
+header:
+  version: 11
+  includes:
+    - kas/chromium/x11.yml
+    - kas/repos/scarthgap.yml
+    - kas/common.yml
+
+machine: qemux86-64
+
+local_conf_header:
+  image_name: |
+    IMAGE_NAME = "glibc-scarthgap-x11-x86_64-chromium"

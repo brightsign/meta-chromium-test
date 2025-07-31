@@ -1,0 +1,12 @@
+header:
+  version: 11
+  includes:
+    - kas/chromium/ozone-wayland.yml
+    - kas/repos/scarthgap.yml
+    - kas/common.yml
+
+machine: qemuarm
+
+local_conf_header:
+  image_name: |
+    IMAGE_NAME = "glibc-scarthgap-ozone-wayland-arm-chromium"
