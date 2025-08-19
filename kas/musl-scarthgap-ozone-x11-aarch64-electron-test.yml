@@ -3,7 +3,7 @@ header:
   includes:
     - kas/electron/ozone-x11.yml
     - kas/repos/scarthgap.yml
-    - kas/common.yml
+    - kas/electron-common.yml
     - kas/musl.yml
 
 machine: qemuarm64

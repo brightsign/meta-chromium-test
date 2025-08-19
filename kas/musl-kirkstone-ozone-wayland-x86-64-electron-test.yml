@@ -3,7 +3,7 @@ header:
   includes:
     - kas/electron/ozone-wayland.yml
     - kas/repos/kirkstone.yml
-    - kas/common.yml
+    - kas/electron-common.yml
     - kas/musl.yml
 
 machine: qemux86-64
