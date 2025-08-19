@@ -1,0 +1,28 @@
+header:
+  version: 11
+
+target: electron-test-image
+
+local_conf_header:
+  meta-electron-common: |
+    LICENSE_FLAGS_ACCEPTED += "commercial"
+    INHERIT += "rm_work ccache"
+    BB_GENERATE_MIRROR_TARBALLS = "1"
+    PACKAGECONFIG:append:pn-qemu = " sdl "
+    PACKAGECONFIG:append:pn-qemu:class-nativesdk = " sdl "
+    PACKAGECONFIG:append:pn-qemu-system-native = " sdl "
+    DL_DIR = "/yocto/yocto_dl"
+    SSTATE_DIR = "/yocto/yocto_sstate_electron"
+    SOURCE_MIRROR_URL = ""
+    EXTRA_IMAGE_FEATURES:append = " debug-tweaks "
+    IMAGE_FSTYPES:remove = "wic.qcow2"
+    INHERIT:remove = "create-spdx"
+    # Electron specific settings
+    # ccache configuration for faster rebuilds
+    CCACHE_DIR = "/yocto/yocto_ccache"
+    CCACHE_MAX_SIZE = "50G"
+    CCACHE_UMASK = "002"
+    CCACHE_COMPRESS = "1"
+    CCACHE_COMPRESSLEVEL = "6"
+    # Enable ccache for both host and target builds
+    CCACHE_TOP_DIR = "/yocto/yocto_ccache"
