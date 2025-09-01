@@ -15,7 +15,7 @@ arch_machine_dict["aarch64"]="qemuarm64"
 arch_machine_dict["riscv"]="qemuriscv64"
 arch_machine_dict["x86-64"]="qemux86-64"
 
-BASE_DIR="/home/cal/work/yocto/poky/sources/meta-chromium-test/kas"
+BASE_DIR="${KAS_BASE_DIR:-./kas}"
 
 # Validate browser argument
 if [ "$BROWSER" != "chromium" ] && [ "$BROWSER" != "electron" ] && [ "$BROWSER" != "both" ]; then
