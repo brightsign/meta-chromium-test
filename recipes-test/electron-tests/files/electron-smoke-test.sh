@@ -58,11 +58,18 @@ app.on('window-all-closed', () => {
 EOF
 
 # Test the minimal app with a timeout
-timeout 10 $ELECTRON_CMD $TEST_APP_DIR --no-sandbox --disable-gpu 2>&1 | grep -q "Electron app started successfully"
-if [ $? -eq 0 ]; then
+OUTPUT=$(timeout 10 $ELECTRON_CMD $TEST_APP_DIR --no-sandbox --disable-gpu 2>&1)
+EXIT_CODE=$?
+echo "$OUTPUT" | grep -q "Electron app started successfully"
+GREP_CODE=$?
+if [ $EXIT_CODE -eq 124 ]; then
+    echo "WARNING: Electron application startup timed out"
+elif [ $EXIT_CODE -ne 0 ]; then
+    echo "WARNING: Electron application startup failed (exit code $EXIT_CODE)"
+elif [ $GREP_CODE -eq 0 ]; then
     echo "SUCCESS: Electron application startup works"
 else
-    echo "WARNING: Electron application startup may have issues (timeout or error)"
+    echo "WARNING: Electron application startup did not produce expected output"
 fi
 
 # Clean up test app
