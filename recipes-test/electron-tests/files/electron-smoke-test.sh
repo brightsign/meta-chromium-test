@@ -90,10 +90,13 @@ fi
 if [ -n "$WAYLAND_DISPLAY" ]; then
     echo "Testing Wayland support..."
     timeout 5 $ELECTRON_CMD --version --ozone-platform=wayland --no-sandbox > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
+    EXIT_CODE=$?
+    if [ $EXIT_CODE -eq 0 ]; then
         echo "SUCCESS: Wayland platform support detected"
+    elif [ $EXIT_CODE -eq 124 ]; then
+        echo "WARNING: Wayland platform test timed out (exit code 124)"
     else
-        echo "WARNING: Wayland platform support may have issues"
+        echo "WARNING: Wayland platform support may have issues (exit code $EXIT_CODE)"
     fi
 fi
 
